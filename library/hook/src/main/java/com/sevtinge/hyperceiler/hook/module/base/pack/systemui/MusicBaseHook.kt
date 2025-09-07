@@ -26,6 +26,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -46,6 +47,7 @@ import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.IconCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.graphics.scale
+import androidx.core.graphics.toColorInt
 import com.hchen.superlyricapi.ISuperLyric
 import com.hchen.superlyricapi.SuperLyricData
 import com.hchen.superlyricapi.SuperLyricTool
@@ -145,7 +147,7 @@ abstract class MusicBaseHook : BaseHook() {
         runCatching {
             val api = when {
                 !isAodShow && isAodMode -> FocusApi.senddiyFocus(
-                    addpics = iconsAdd,
+//                    addpics = iconsAdd,
                     ticker = text,
                     island = islandTemplate,
                     updatable = true,
@@ -158,7 +160,7 @@ abstract class MusicBaseHook : BaseHook() {
                     pictickerdark = darkIcon
                 )
                 !isAodShow && !isAodMode -> FocusApi.senddiyFocus(
-                    addpics = iconsAdd,
+//                    addpics = iconsAdd,
                     ticker = text,
                     island = islandTemplate,
                     rvIsLand = remoteIsland,
@@ -172,7 +174,7 @@ abstract class MusicBaseHook : BaseHook() {
                     pictickerdark = darkIcon
                 )
                 else -> FocusApi.senddiyFocus(
-                    addpics = iconsAdd,
+//                    addpics = iconsAdd,
                     ticker = text,
                     rvIsLand = remoteIsland,
                     island = islandTemplate,
@@ -196,7 +198,7 @@ abstract class MusicBaseHook : BaseHook() {
                 val baseinfo = FocusApi.baseinfo(basetype = 1, title = text)
                 val apiFallback = if (!isAodShow) {
                     FocusApi.sendFocus(
-                        addpics = iconsAdd,
+//                        addpics = iconsAdd,
                         ticker = text,
                         aodTitle = text,
                         aodPic = icon,
@@ -210,7 +212,7 @@ abstract class MusicBaseHook : BaseHook() {
                     )
                 } else {
                     FocusApi.sendFocus(
-                        addpics = iconsAdd,
+//                        addpics = iconsAdd,
                         ticker = text,
                         island = islandTemplate,
                         baseInfo = baseinfo,
@@ -263,7 +265,7 @@ abstract class MusicBaseHook : BaseHook() {
             shareContent = modRes.getString(R.string.system_ui_statusbar_music_send_share_text, musicAppName, originalText)
         )
 
-        val picInfo = if (leftText.length <= 6) IslandApi.PicInfo(pic = "miui.focus.icon") else null
+        val picInfo = null
 
         val left = IslandApi.ImageTextInfo(
             picInfo = picInfo,
@@ -405,7 +407,9 @@ abstract class MusicBaseHook : BaseHook() {
         val logicalLen = tokens.size
 
         if (logicalLen <= config.maxLength) {
-            return splitBySpaceOrNone(tokens, raw, raw.length / 2, config)
+//            return splitBySpaceOrNone(tokens, raw, raw.length / 2, config)
+            // use ceiling of length/2 to avoid empty second part when length is 1
+            return splitBySpaceOrNone(tokens, raw, (raw.length + 1) / 2, config)
         }
 
         val approxCharIndex = tokens.take(config.maxLength).sumOf { it.text.length }
@@ -438,7 +442,7 @@ abstract class MusicBaseHook : BaseHook() {
 
         val minLen = (raw.length * config.minFraction).toInt()
         if (first.length < minLen || (second?.length ?: 0) < minLen) {
-            val mid = tokens.size / 2
+            val mid = (tokens.size + 1) / 2
             first = tokens.take(mid).joinToString("") { it.text }
             second = tokens.drop(mid).joinToString("") { it.text }
         }
@@ -486,7 +490,7 @@ abstract class MusicBaseHook : BaseHook() {
 data class SplitConfig(
     val maxLength: Int,
     val lookahead: Int = 2,
-    val minFraction: Double = 0.45,
+    val minFraction: Double = 0.5,
     val keepSpaceInSecond: Boolean = false,
     val pairedSymbols: Map<Char, Char> = mapOf(
         '(' to ')',
